@@ -17,6 +17,15 @@
                 <p class="text-muted">この画面はHTMLテンプレートで作成されています。</p>
             </div>
         </div>
+        <div class="card p-4">
+            <h2>お名前を入力してください</h2>
+            <form action="/greet" method="POST">
+                <div class="mb-3">
+                    <input type="text" name="username" class="form-control" placeholder="例：タロウ" required>
+                </div>
+                <button type="submit" class="btn btn-primary">送信する</button>
+            </form>
+        </div>
     </div>
 </div>
 
