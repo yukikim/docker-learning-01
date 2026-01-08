@@ -337,3 +337,107 @@ if __name__ == "__main__":
 * **`@app.route('/パス')`** を増やすことで、ページを無限に増やせます。
 * **`render_template`** で、URLごとに表示するHTMLを指定します。
 * **Template Inheritance（継承）** を使えば、ヘッダーなどを一箇所直すだけで全ページに反映されるので非常に楽です。
+
+---
+
+## 送信フォーム処理(POST)
+Flask で「データの受け渡し（フォーム送信）」を行うには、HTML の **`<form>` タグ**と、Python 側の **`request` オブジェクト**を組み合わせて使います。
+
+ユーザーが入力した情報をサーバーに送り、それを受け取って処理する一連の流れを作ってみましょう。
+
+---
+
+## 1. 入力フォームの作成（送信側）
+
+まずは、ユーザーが名前を入力する画面を作ります。`base.html` を継承して作成しましょう。
+
+**`templates/index.html`**
+ポイントは、`<form>` タグの `method="POST"` です。
+
+```html
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card p-4">
+        <h2>お名前を入力してください</h2>
+        <form action="/greet" method="POST">
+            <div class="mb-3">
+                <input type="text" name="username" class="form-control" placeholder="例：タロウ" required>
+            </div>
+            <button type="submit" class="btn btn-primary">送信する</button>
+        </form>
+    </div>
+{% endblock %}
+
+```
+
+---
+
+## 2. データを受け取る処理（受信側）
+
+次に、送られてきたデータを受け取って別の画面に表示する処理を Python で書きます。
+
+**`app.py`**
+`request.form['名前']` を使うことで、HTML の `name="username"` で指定した値を取り出せます。
+
+```python
+from flask import Flask, render_template, request # requestを追加
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# /greet への POST リクエストを許可する
+@app.route('/greet', methods=['POST'])
+def greet():
+    # フォームから送られたデータ(username)を取得
+    user = request.form.get('username')
+    return render_template('result.html', name=user)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
+```
+
+---
+
+## 3. 結果を表示する画面
+
+受け取った名前を表示するための HTML です。
+
+**`templates/result.html`**
+
+```html
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="alert alert-success">
+        <h1>こんにちは、{{ name }} さん！</h1>
+        <p>フォームからデータが正しく送信されました。</p>
+        <a href="/" class="btn btn-outline-secondary">戻る</a>
+    </div>
+{% endblock %}
+
+```
+
+---
+
+## 4. データの流れまとめ
+
+1. **ブラウザ:** `index.html` のフォームに「タロウ」と入力して送信ボタンを押す。
+2. **HTTP通信:** `POST` メソッドで `/greet` という URL にデータ（`username=タロウ`）が飛んでいく。
+3. **Flask:** `@app.route('/greet', methods=['POST'])` が反応し、`request.form.get('username')` で「タロウ」をキャッチする。
+4. **表示:** キャッチした名前を `result.html` に流し込み、ブラウザに返却する。
+
+---
+
+## 5. 発展：GET と POST の違い
+
+| メソッド | データの送り方 | 主な用途 |
+| --- | --- | --- |
+| **GET** | URLの末尾にデータが付く (`?name=taro`) | 検索、データの取得 |
+| **POST** | 通信の中身（ボディ）に隠して送る | ログイン、情報の登録、送信 |
+
+---
